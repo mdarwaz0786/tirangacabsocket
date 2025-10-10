@@ -38,7 +38,7 @@ io.on("connection", (socket) => {
   socket.on("newBooking", (bookingData) => {
     console.log("New Booking Received:", bookingData);
 
-    // Send booking to ALL connected drivers
+    // Send booking to all connected drivers
     Object.values(drivers).forEach((driverSocketId) => {
       io.to(driverSocketId).emit("incomingBooking", bookingData);
     });
@@ -51,6 +51,7 @@ io.on("connection", (socket) => {
     const userSocket = users[user_id];
     if (userSocket) {
       io.to(userSocket).emit("bookingAccepted", {
+        user_id,
         booking_id,
         driverDetails,
       });
@@ -59,12 +60,13 @@ io.on("connection", (socket) => {
 
   // Driver rejects booking
   socket.on("driverRejected", (data) => {
-    const { user_id, driver_id, booking_id } = data;
+    const { user_id, booking_id, driverDetails } = data;
     const userSocket = users[user_id];
     if (userSocket) {
       io.to(userSocket).emit("bookingRejected", {
+        user_id,
         booking_id,
-        driver_id,
+        driverDetails,
       });
     };
   });
