@@ -26,12 +26,28 @@ io.on("connection", (socket) => {
   socket.on("registerUser", (user_id) => {
     users[user_id] = socket.id;
     console.log("User Registered:", user_id);
+
+    // send confirmation back to this specific socket
+    io.to(socket.id).emit("registrationConfirmed", {
+      type: "user",
+      userId: user_id,
+      success: true,
+      message: "User socket registered successfully",
+    });
   });
 
   // When driver connects
   socket.on("registerDriver", (driver_id) => {
     drivers[driver_id] = socket.id;
     console.log("Driver Registered:", driver_id);
+
+    // send confirmation back to this driver socket
+    io.to(socket.id).emit("registrationConfirmed", {
+      type: "driver",
+      driverId: driver_id,
+      success: true,
+      message: "Driver socket registered successfully",
+    });
   });
 
   // User sends booking confirmation
