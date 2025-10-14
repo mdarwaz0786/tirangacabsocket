@@ -25,34 +25,27 @@ io.on("connection", (socket) => {
   // When user connects
   socket.on("registerUser", (user_id) => {
     users[user_id] = socket.id;
-    console.log("User Registered:", user_id);
 
     // send confirmation back to this specific socket
     io.to(socket.id).emit("registrationConfirmed", {
-      type: "user",
-      userId: user_id,
       success: true,
-      message: "User socket registered successfully",
+      message: "Socket Connected",
     });
   });
 
   // When driver connects
   socket.on("registerDriver", (driver_id) => {
     drivers[driver_id] = socket.id;
-    console.log("Driver Registered:", driver_id);
 
-    // send confirmation back to this driver socket
+    // send confirmation back to this specific socket
     io.to(socket.id).emit("registrationConfirmed", {
-      type: "driver",
-      driverId: driver_id,
       success: true,
-      message: "Driver socket registered successfully",
+      message: "Socket Connected",
     });
   });
 
   // User sends booking confirmation
   socket.on("newBooking", (bookingData) => {
-    console.log("New Booking Received:", bookingData);
 
     // Send booking to all connected drivers
     Object.values(drivers).forEach((driverSocketId) => {
@@ -62,33 +55,43 @@ io.on("connection", (socket) => {
 
   // Driver accepts booking
   socket.on("driverAccepted", (data) => {
-    console.log("Driver Accepted Booking:", data);
-    const { user_id, booking_id, driverDetails } = data;
+    const { user_id, booking_id, driverDetails, carDetails } = data;
     const userSocket = users[user_id];
+
     if (userSocket) {
       io.to(userSocket).emit("bookingAccepted", {
         user_id,
         booking_id,
         driverDetails,
+        carDetails,
       });
     };
   });
 
   // Driver rejects booking
   socket.on("driverRejected", (data) => {
-    const { user_id, booking_id, driverDetails } = data;
+    const { user_id, booking_id, driverDetails, carDetails } = data;
     const userSocket = users[user_id];
+
     if (userSocket) {
       io.to(userSocket).emit("bookingRejected", {
         user_id,
         booking_id,
         driverDetails,
+        carDetails,
       });
     };
   });
 
+  // When socket disconnected
   socket.on("disconnect", () => {
-    console.log("Socket disconnected:", socket.id);
+    if (socket.user_id) {
+      delete users[socket.user_id];
+    };
+
+    if (socket.driver_id) {
+      delete drivers[socket.driver_id];
+    };
   });
 });
 
