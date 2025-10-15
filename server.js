@@ -24,6 +24,7 @@ io.on("connection", (socket) => {
 
   // When user connects
   socket.on("registerUser", (user_id) => {
+    socket.user_id = user_id;
     users[user_id] = socket.id;
 
     // send confirmation back to this specific socket
@@ -35,6 +36,7 @@ io.on("connection", (socket) => {
 
   // When driver connects
   socket.on("registerDriver", (driver_id) => {
+    socket.driver_id = driver_id;
     drivers[driver_id] = socket.id;
 
     // send confirmation back to this specific socket
@@ -46,11 +48,13 @@ io.on("connection", (socket) => {
 
   // User sends booking confirmation
   socket.on("newBooking", (bookingData) => {
+    if (Object.keys(drivers).length === 0) {
+      return;
+    };
 
-    // Send booking to all connected drivers
-    Object.values(drivers).forEach((driverSocketId) => {
+    for (const driverSocketId of Object.values(drivers)) {
       io.to(driverSocketId).emit("incomingBooking", bookingData);
-    });
+    };
   });
 
   // Driver accepts booking
